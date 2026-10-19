@@ -1,0 +1,7 @@
+bower_components/
+node_modules/
+coverage/
+dist/
+demo/dist/
+.superpowers/
+.vitest/

@@ -1,0 +1,28 @@
+#!/bin/sh
+# Bump the patch version on every commit so `npm publish` always sees a fresh
+# version. The bump is staged into the same commit.
+#
+# Skip a bump with: SKIP_VERSION_BUMP=1 git commit ...
+set -e
+
+if [ "$SKIP_VERSION_BUMP" = "1" ]; then
+  exit 0
+fi
+
+# Hooks can run from a subdirectory of the work tree; always operate on the root.
+cd "$(git rev-parse --show-toplevel)" || exit 0
+
+if [ ! -f package.json ]; then
+  exit 0
+fi
+
+if ! npm version patch --no-git-tag-version > /dev/null; then
+  echo "pre-commit: version bump failed, commit aborted." >&2
+  echo "pre-commit: use 'SKIP_VERSION_BUMP=1 git commit ...' to bypass." >&2
+  exit 1
+fi
+
+git add package.json
+if [ -f package-lock.json ]; then
+  git add package-lock.json
+fi

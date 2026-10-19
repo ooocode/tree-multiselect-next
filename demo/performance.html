@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tree Multiselect performance demo</title>
+
+    <meta charset="UTF-8">
+
+    <style>
+      * {
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+
+  <body>
+    <select id="test-select" multiple="multiple">
+      <option value="blueberry" data-section="Smoothies">Blueberry</option>
+      <option value="strawberry" data-section="Smoothies">Strawberries</option>
+      <option value="peach" data-section="Smoothies">Peach</option>
+      <option value="milk tea" data-section="Smoothies/Bubble Tea">Milk Tea</option>
+      <option value="green apple" data-section="Smoothies/Bubble Tea">Green Apple</option>
+      <option value="passion fruit" data-section="Smoothies/Bubble Tea" data-description="The greatest flavor" selected="selected">Passion Fruit</option>
+    </select>
+
+    <script type="module" src="./performance.ts"></script>
+  </body>
+</html>

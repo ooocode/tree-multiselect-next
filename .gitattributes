@@ -1,0 +1,2 @@
+# keep the hook runnable by sh on every platform (core.autocrlf must not add CR)
+.githooks/* text eol=lf

@@ -1,0 +1,75 @@
+{
+  "name": "tree-multiselect-next",
+  "version": "0.1.5",
+  "description": "jQuery multiple select with nested options",
+  "type": "module",
+  "main": "./dist/tree-multiselect.js",
+  "types": "./dist/tree-multiselect.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/tree-multiselect.d.ts",
+      "import": "./dist/tree-multiselect.js"
+    },
+    "./style.css": "./dist/tree-multiselect.css",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "keywords": [
+    "tree",
+    "multiselect",
+    "select",
+    "jquery",
+    "options",
+    "checkbox"
+  ],
+  "scripts": {
+    "build": "npm run build:js && npm run build:css",
+    "release": "npm run build",
+    "build:js": "tsc -p tsconfig.build.json",
+    "build:css": "sass src/style.scss dist/tree-multiselect.css && sass --style=compressed src/style.scss dist/tree-multiselect.min.css",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:file": "tsc --noEmit --ignoreConfig --strict --target ES2020 --lib ES2020,DOM --module NodeNext --moduleResolution NodeNext --esModuleInterop --skipLibCheck --types jquery,jqueryui",
+    "lint": "eslint .",
+    "test": "npm run typecheck && npm run lint && npm run build:js && npm run typecheck:consumer && vitest run",
+    "typecheck:consumer": "tsc -p test/consumer/tsconfig.json",
+    "test:watch": "vitest",
+    "dev": "vite demo",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Patrick Tsai",
+  "license": "MIT",
+  "dependencies": {
+    "@types/jquery": "^4.0.1"
+  },
+  "peerDependencies": {
+    "jquery": ">=3.7 <5",
+    "jquery-ui": ">=1.12 <5"
+  },
+  "peerDependenciesMeta": {
+    "jquery-ui": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/chai": "^5.2.3",
+    "@types/jqueryui": "^1.12.24",
+    "@vitest/browser-playwright": "^5.0.5",
+    "chai": "^5.3.3",
+    "eslint": "^10.13.0",
+    "jquery": "^4.0.0",
+    "jquery-ui": "^1.14.2",
+    "playwright": "^1.64.1",
+    "sass": "^1.105.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}
