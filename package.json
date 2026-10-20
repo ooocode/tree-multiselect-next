@@ -1,6 +1,6 @@
 {
   "name": "tree-multiselect-next",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "jQuery multiple select with nested options",
   "type": "module",
   "main": "./dist/tree-multiselect.js",
@@ -32,7 +32,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:file": "tsc --noEmit --ignoreConfig --strict --target ES2020 --lib ES2020,DOM --module NodeNext --moduleResolution NodeNext --esModuleInterop --skipLibCheck --types jquery,jqueryui",
     "lint": "eslint .",
-    "test": "npm run typecheck && npm run lint && npm run build:js && npm run typecheck:consumer && vitest run",
+    "test": "npm run typecheck && npm run lint && npm run build:js && npm run typecheck:consumer && npm run test:ssr && vitest run",
+    "test:ssr": "node scripts/check-ssr.mjs",
     "typecheck:consumer": "tsc -p test/consumer/tsconfig.json",
     "test:watch": "vitest",
     "dev": "vite demo",
