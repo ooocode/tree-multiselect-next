@@ -12,7 +12,7 @@ Install dependencies first: `npm install`. Node 24 is the development baseline.
 
 | Command | Purpose |
 | --- | --- |
-| `npm test` | `typecheck` + `lint` + `vitest run` (the CI gate) |
+| `npm test` | `typecheck` + `lint` + `build:js` + `typecheck:consumer` + `test:ssr` + `vitest run` (the CI gate) |
 | `npm run typecheck` | `tsc -p tsconfig.json --noEmit` over `src/` and `test/` |
 | `npm run typecheck:file -- <path>` | Type-check one file and its import graph (TS 6 needs `--ignoreConfig` here) |
 | `npm run lint` | ESLint 10 flat config; add `--fix` to normalize quotes/indent |
@@ -20,6 +20,7 @@ Install dependencies first: `npm install`. Node 24 is the development baseline.
 | `npm run build` | `tsc -p tsconfig.build.json` → `dist/` (ESM + `.d.ts`), then Sass → `dist/*.css` |
 | `npm run dev` | Vite-served pages in `demo/` |
 | `npm run test:watch` | Vitest watch mode |
+| `npm run test:ssr` | Import the built entry in DOM-less Node; guards SSR safety |
 
 `npm run build` is what produces the published package; `dist/` is git-ignored and must never be edited by hand.
 
@@ -27,7 +28,7 @@ Install dependencies first: `npm install`. Node 24 is the development baseline.
 
 ## Architecture
 
-Entry chain: [src/tree-multiselect.ts](src/tree-multiselect.ts) imports jQuery and `treeMultiselect` from `./tree-multiselect/main.js`, assigns `jQuery.fn.treeMultiselect = treeMultiselect`, declares the global `JQuery` interface augmentation, and re-exports the public types. Importing the package is therefore required for both registration and types.
+Entry chain: [src/tree-multiselect.ts](src/tree-multiselect.ts) declares the global `JQuery` interface augmentation, re-exports the public types, and — only when `document` exists — dynamically imports jQuery plus `./tree-multiselect/main.js` and assigns `jQuery.fn.treeMultiselect = treeMultiselect`. The `typeof document` guard plus the top-level await keep `import 'tree-multiselect-next'` safe under SSR (Next.js prerendering, Remix, plain Node) while guaranteeing that registration has completed before the importing module continues. Importing the package is therefore required for both registration and types.
 
 Key modules under [src/tree-multiselect/](src/tree-multiselect/):
 

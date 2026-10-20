@@ -122,6 +122,64 @@ jQuery("select").treeMultiselect({searchable: true});
 
 If you use `sortable: true`, load jQuery UI yourself before creating the tree — it is not bundled.
 
+### Next.js / SSR
+
+The package entry is safe to import where there is no DOM: it only registers
+`$.fn.treeMultiselect` once a `document` exists, so importing it from a client
+component does not break server-side rendering or prerendering. The plugin
+itself still needs a browser, so create the tree after mount.
+
+jQuery is the part that cannot run on the server — `import jQuery from "jquery"`
+throws without a `window` — so load jQuery inside `useEffect`:
+
+```tsx
+"use client";
+
+import { useEffect, useRef } from "react";
+import "tree-multiselect-next"; // safe during prerendering
+import type { TreeMultiselectHandle } from "tree-multiselect-next";
+
+export default function TreeSelect() {
+  const selectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    let tree: JQuery<TreeMultiselectHandle> | undefined;
+    let cancelled = false;
+
+    (async () => {
+      const { default: jQuery } = await import("jquery");
+      if (cancelled || !selectRef.current) return;
+      tree = jQuery(selectRef.current).treeMultiselect({ searchable: true });
+    })();
+
+    return () => {
+      cancelled = true;
+      tree?.remove();
+    };
+  }, []);
+
+  return (
+    <select ref={selectRef} multiple defaultValue={["peach"]}>
+      <option value="blueberry">Blueberry</option>
+      <option value="peach">Peach</option>
+    </select>
+  );
+}
+```
+
+Notes:
+
+- Import the stylesheet from a global CSS file (App Router: `app/layout.tsx`):
+  `import "tree-multiselect-next/style.css";`
+- `sortable: true` needs jQuery UI, which also requires a DOM — import it
+  dynamically inside the same `useEffect` before creating the tree.
+- Calling `tree.remove()` in the effect cleanup keeps React StrictMode's
+  double-invoked effects safe.
+- Alternatively, load the whole wrapper from a client-only module, e.g.
+  `dynamic(() => import("./TreeSelect"), { ssr: false })`; then a static
+  `import jQuery from "jquery"` inside that module is fine too.
+- The `TreeMultiselectHandle` import is type-only, so it is erased at build time.
+
 ### TypeScript
 
 Type declarations ship with the package and are generated from the source, so they always match the implementation. Three types are exported for annotating your own code:
