@@ -1,14 +1,15 @@
-import './common.js';
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+
+import Common from './common.js';
 
 describe('Removing', () => {
   it('can remove tree', () => {
-    $('select').append('<option value=\'one\' data-section=\'foo\' selected=\'selected\' data-description=\'One\'>One</option>');
-    var trees = $('select').treeMultiselect();
-    var tree = trees[0];
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'foo\' selected=\'selected\' data-description=\'One\'>One</option>');
+    let tree = treeMultiselect(Common.select())[0];
 
-    assert.equal($('.tree-multiselect').length, 1);
+    assert.equal(Common.all('.tree-multiselect').length, 1);
 
     tree.remove();
-    assert.equal($('.tree-multiselect').length, 0);
+    assert.equal(Common.all('.tree-multiselect').length, 0);
   });
 });

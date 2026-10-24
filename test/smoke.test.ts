@@ -1,6 +1,7 @@
+import { treeMultiselect } from '../src/tree-multiselect.js';
+
 describe('toolchain', () => {
-  it('loads jquery and jquery ui sortable in the browser', () => {
-    assert.isFunction($);
-    assert.isFunction($('div').sortable);
+  it('exposes treeMultiselect from the package entry', () => {
+    assert.isFunction(treeMultiselect);
   });
 });

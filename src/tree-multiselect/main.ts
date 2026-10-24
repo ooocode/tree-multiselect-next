@@ -4,13 +4,18 @@ import type { ResolvedTreeMultiselectOptions, TreeMultiselectHandle, TreeMultise
 
 let uniqueId = 0;
 
-// `this` is the jQuery collection the plugin was called on; the jQuery
-// collection is only used as the public entry point, the tree itself is plain DOM
-export default function treeMultiselect (this: JQuery, opts?: TreeMultiselectOptions): JQuery<TreeMultiselectHandle> {
+export type TreeMultiselectTarget = HTMLSelectElement | Iterable<HTMLSelectElement>;
+
+// Creates one independent tree per `<select>` and returns a handle for each, in
+// the same order as the targets, so `treeMultiselect(select)[0]` works for the
+// common single-select case.
+export default function treeMultiselect (
+  target: TreeMultiselectTarget,
+  opts?: TreeMultiselectOptions
+): TreeMultiselectHandle[] {
   let options = mergeDefaultOptions(opts);
 
-  return this.map((_index, originalSelect) => {
-    let selectNode = originalSelect as HTMLSelectElement;
+  return selectElements(target).map((selectNode) => {
     selectNode.setAttribute('multiple', '');
     selectNode.style.display = 'none';
 
@@ -28,7 +33,31 @@ export default function treeMultiselect (this: JQuery, opts?: TreeMultiselectOpt
         tree.remove();
       }
     };
-  }) as unknown as JQuery<TreeMultiselectHandle>;
+  });
+}
+
+function selectElements (target: TreeMultiselectTarget): HTMLSelectElement[] {
+  if (isSelectElement(target)) {
+    return [target];
+  }
+
+  if (target && typeof (target as Iterable<HTMLSelectElement>)[Symbol.iterator] === 'function') {
+    let selects = Array.from(target as Iterable<HTMLSelectElement>);
+    for (let ii = 0; ii < selects.length; ++ii) {
+      if (!isSelectElement(selects[ii])) {
+        throw new TypeError('treeMultiselect expects <select> elements');
+      }
+    }
+    return selects;
+  }
+
+  throw new TypeError('treeMultiselect expects a <select> element or an iterable of them');
+}
+
+// Duck-typing keeps this working for elements created in another realm (iframe),
+// where `instanceof HTMLSelectElement` would be false.
+function isSelectElement (value: unknown): value is HTMLSelectElement {
+  return typeof value === 'object' && value !== null && (value as Element).tagName === 'SELECT';
 }
 
 function mergeDefaultOptions (options?: TreeMultiselectOptions): ResolvedTreeMultiselectOptions {
@@ -50,8 +79,6 @@ function mergeDefaultOptions (options?: TreeMultiselectOptions): ResolvedTreeMul
     sortable: false,
     startCollapsed: false
   };
-  // same as jQuery.extend({}, defaults, options): enumerable keys, undefined
-  // values in options do not override the default
   let merged = { ...defaults } as Record<string, unknown>;
   if (options) {
     let source = options as Record<string, unknown>;

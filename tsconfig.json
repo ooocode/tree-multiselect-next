@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "noEmit": true,
-    "types": ["jquery", "jqueryui", "vitest/globals"]
+    "types": ["vitest/globals"]
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["test/consumer/**", "demo/**"]

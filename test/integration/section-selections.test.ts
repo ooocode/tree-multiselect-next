@@ -1,77 +1,79 @@
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+
 import Common from './common.js';
 
 describe('Section Selections', () => {
   it('adds all child elements when section checkbox clicked', () => {
-    $('select').append('<option value=\'one\' data-section=\'foo\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'foo\'>Two</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'foo\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'foo\'>Two</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
-    var $selected = Common.selected();
-    assert.equal($selected.length, 0);
+    assert.deepEqual(Common.values(Common.select()), []);
+    let selected = Common.selected();
+    assert.equal(selected.length, 0);
 
-    var $checkbox = Common.sectionCheckbox();
-    assert.equal($checkbox.length, 1);
-    $checkbox.click();
+    let checkboxes = Common.sectionCheckbox();
+    assert.equal(checkboxes.length, 1);
+    checkboxes[0].click();
 
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    Common.assertSelected($selected[0], {text: 'One', value: 'one', section: 'foo'});
-    Common.assertSelected($selected[1], {text: 'Two', value: 'two', section: 'foo'});
+    selected = Common.selected();
+    assert.equal(selected.length, 2);
+    Common.assertSelected(selected[0], { text: 'One', value: 'one', section: 'foo' });
+    Common.assertSelected(selected[1], { text: 'Two', value: 'two', section: 'foo' });
   });
 
   it('doesn\'t add child elements twice when other child elements are selected', () => {
-    $('select').append('<option value=\'one\' data-section=\'foo\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'foo\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'foo/bar/baz\' selected>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'foo/bar/baz\' selected>Four</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'foo\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'foo\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'foo/bar/baz\' selected>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'foo/bar/baz\' selected>Four</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['three', 'four']);
-    var $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    Common.assertSelected($selected[0], {text: 'Three', value: 'three', section: 'foo/bar/baz'});
-    Common.assertSelected($selected[1], {text: 'Four', value: 'four', section: 'foo/bar/baz'});
+    assert.deepEqual(Common.values(Common.select()), ['three', 'four']);
+    let selected = Common.selected();
+    assert.equal(selected.length, 2);
+    Common.assertSelected(selected[0], { text: 'Three', value: 'three', section: 'foo/bar/baz' });
+    Common.assertSelected(selected[1], { text: 'Four', value: 'four', section: 'foo/bar/baz' });
 
-    var $checkbox = Common.sectionCheckbox();
-    assert.equal($checkbox.length, 3);
-    $checkbox.first().click();
+    let checkboxes = Common.sectionCheckbox();
+    assert.equal(checkboxes.length, 3);
+    checkboxes[0].click();
 
-    assert.deepEqual($('select').val(), ['three', 'four', 'one', 'two']);
+    assert.deepEqual(Common.values(Common.select()), ['three', 'four', 'one', 'two']);
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 4);
-    Common.assertSelected($selected[0], {text: 'Three', value: 'three', section: 'foo/bar/baz'});
-    Common.assertSelected($selected[1], {text: 'Four', value: 'four', section: 'foo/bar/baz'});
-    Common.assertSelected($selected[2], {text: 'One', value: 'one', section: 'foo'});
-    Common.assertSelected($selected[3], {text: 'Two', value: 'two', section: 'foo'});
+    selected = Common.selected();
+    assert.equal(selected.length, 4);
+    Common.assertSelected(selected[0], { text: 'Three', value: 'three', section: 'foo/bar/baz' });
+    Common.assertSelected(selected[1], { text: 'Four', value: 'four', section: 'foo/bar/baz' });
+    Common.assertSelected(selected[2], { text: 'One', value: 'one', section: 'foo' });
+    Common.assertSelected(selected[3], { text: 'Two', value: 'two', section: 'foo' });
   });
 
   it('removes child elements when section unselected', () => {
-    $('select').append('<option value=\'one\' data-section=\'foo\' selected>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'foo\' selected>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'foo/bar/baz\' selected>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'foo/bar/baz\' selected>Four</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'foo\' selected>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'foo\' selected>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'foo/bar/baz\' selected>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'foo/bar/baz\' selected>Four</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one', 'two', 'three', 'four']);
-    var $selected = Common.selected();
-    Common.assertSelected($selected[0], {text: 'One', value: 'one', section: 'foo'});
-    Common.assertSelected($selected[1], {text: 'Two', value: 'two', section: 'foo'});
-    Common.assertSelected($selected[2], {text: 'Three', value: 'three', section: 'foo/bar/baz'});
-    Common.assertSelected($selected[3], {text: 'Four', value: 'four', section: 'foo/bar/baz'});
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two', 'three', 'four']);
+    let selected = Common.selected();
+    Common.assertSelected(selected[0], { text: 'One', value: 'one', section: 'foo' });
+    Common.assertSelected(selected[1], { text: 'Two', value: 'two', section: 'foo' });
+    Common.assertSelected(selected[2], { text: 'Three', value: 'three', section: 'foo/bar/baz' });
+    Common.assertSelected(selected[3], { text: 'Four', value: 'four', section: 'foo/bar/baz' });
 
-    var $checkbox = Common.sectionCheckbox({text: 'baz'});
-    assert.equal($checkbox.length, 1);
-    $checkbox.click();
+    let checkboxes = Common.sectionCheckbox({ text: 'baz' });
+    assert.equal(checkboxes.length, 1);
+    checkboxes[0].click();
 
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    Common.assertSelected($selected[0], {text: 'One', value: 'one', section: 'foo'});
-    Common.assertSelected($selected[1], {text: 'Two', value: 'two', section: 'foo'});
+    selected = Common.selected();
+    assert.equal(selected.length, 2);
+    Common.assertSelected(selected[0], { text: 'One', value: 'one', section: 'foo' });
+    Common.assertSelected(selected[1], { text: 'Two', value: 'two', section: 'foo' });
   });
 });

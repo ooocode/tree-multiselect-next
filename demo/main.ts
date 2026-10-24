@@ -1,22 +1,22 @@
-import jQuery from 'jquery';
+import { treeMultiselect } from '../src/tree-multiselect.js';
 
 import './setup.js';
 
-jQuery('#test-select').treeMultiselect({
+treeMultiselect(document.querySelector('#test-select') as HTMLSelectElement, {
   enableSelectAll: true,
   sortable: true,
   selectAllText: '全选',
   unselectAllText: '全不选',
-  onChange(allSelectedItems, addedItems, removedItems) {
-    console.log(allSelectedItems)
-  },
+  onChange (allSelectedItems) {
+    console.log(allSelectedItems);
+  }
 });
 
-jQuery('#test-select-2').treeMultiselect({
+treeMultiselect(document.querySelector('#test-select-2') as HTMLSelectElement, {
   searchable: true
 });
 
-jQuery('#test-select-3').treeMultiselect({
+treeMultiselect(document.querySelector('#test-select-3') as HTMLSelectElement, {
   allowBatchSelection: false,
   enableSelectAll: true,
   maxSelections: 4,
@@ -25,7 +25,7 @@ jQuery('#test-select-3').treeMultiselect({
   startCollapsed: true
 });
 
-jQuery('#test-select-4').treeMultiselect({
+treeMultiselect(document.querySelector('#test-select-4') as HTMLSelectElement, {
   allowBatchSelection: true,
   enableSelectAll: true,
   searchable: true,

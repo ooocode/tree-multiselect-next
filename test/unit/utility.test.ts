@@ -19,13 +19,15 @@ describe('Utility', () => {
   });
 
   it('getKey', () => {
-    var el = $('<div data-key=\'4\'></div>')[0];
+    var el = document.createElement('div');
+    el.setAttribute('data-key', '4');
     assert.equal(Util.getKey(el), 4);
 
-    el = $('<div></div>')[0];
+    el = document.createElement('div');
     assert.isNaN(Util.getKey(el));
 
-    el = $('<div data-key=\'foobar\'></div>')[0];
+    el = document.createElement('div');
+    el.setAttribute('data-key', 'foobar');
     assert.isNaN(Util.getKey(el));
   });
 

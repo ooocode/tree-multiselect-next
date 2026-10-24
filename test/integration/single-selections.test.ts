@@ -1,160 +1,163 @@
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+
 import Common from './common.js';
 
 describe('Single Selection', () => {
   it('can add an item', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\'>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\'>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    assert.deepEqual(Common.values(Common.select()), []);
 
-    var $checkbox = Common.selectionCheckbox({checked: false});
-    assert.equal($checkbox.length, 1);
-    $checkbox.click();
+    let checkboxes = Common.selectionCheckbox({ checked: false });
+    assert.equal(checkboxes.length, 1);
+    checkboxes[0].click();
 
-    var $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 1);
+    let checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 1);
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
   });
 
   it('can remove an item', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
 
-    var $checkbox = Common.selectionCheckbox({checked: true});
-    assert.equal($checkbox.length, 1);
-    $checkbox.click();
+    let checkboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkboxes.length, 1);
+    checkboxes[0].click();
 
-    var $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 0);
+    let checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 0);
 
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    assert.deepEqual(Common.values(Common.select()), []);
   });
 
   it('can add an item with the same text', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'section\' selected>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'section\' selected>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['two']);
+    assert.deepEqual(Common.values(Common.select()), ['two']);
 
-    var $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 1);
+    let checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 1);
 
-    var $checkbox = Common.selectionCheckbox();
-    assert.equal($checkbox.length, 2);
+    let checkboxes = Common.selectionCheckbox();
+    assert.equal(checkboxes.length, 2);
 
-    $checkbox.first().click();
+    checkboxes[0].click();
 
-    $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 2);
+    checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 2);
 
-    assert.deepEqual($('select').val(), ['two', 'one']);
+    assert.deepEqual(Common.values(Common.select()), ['two', 'one']);
   });
 
   it('can add an item with the same value as another', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\'>One</option>');
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One2</option>');
-    $('select').append('<option value=\'one\' data-section=\'section\'>One3</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One2</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\'>One3</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
 
-    var $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 1);
+    let checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 1);
 
-    var $checkbox = Common.selectionCheckbox();
-    assert.equal($checkbox.length, 3);
+    let checkboxes = Common.selectionCheckbox();
+    assert.equal(checkboxes.length, 3);
 
-    $checkbox.last().click();
+    checkboxes[checkboxes.length - 1].click();
 
-    $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 2);
+    checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 2);
 
-    assert.deepEqual($('select').val(), ['one', 'one']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'one']);
   });
 
   it('can remove an item with the same value as another', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\'>One</option>');
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One2</option>');
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One3</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One2</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One3</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one', 'one']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'one']);
 
-    var $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 2);
+    let checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 2);
 
-    var $checkbox = Common.selectionCheckbox();
-    assert.equal($checkbox.length, 3);
+    let checkboxes = Common.selectionCheckbox();
+    assert.equal(checkboxes.length, 3);
 
-    $checkbox.last().click();
+    checkboxes[checkboxes.length - 1].click();
 
-    $checkboxChecked = Common.selectionCheckbox({checked: true});
-    assert.equal($checkboxChecked.length, 1);
+    checkedCheckboxes = Common.selectionCheckbox({ checked: true });
+    assert.equal(checkedCheckboxes.length, 1);
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
   });
 
   it('can remove an item by selected item remove button', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
 
-    var $selected = Common.selected();
-    assert.equal($selected.length, 1);
+    let selected = Common.selected();
+    assert.equal(selected.length, 1);
 
-    var $removeSpan = $selected.children('.remove-selected');
-    $removeSpan.click();
+    let removeSpan = Common.directChild(selected[0], '.remove-selected') as HTMLElement;
+    removeSpan.click();
 
     assert.equal(Common.selected().length, 0);
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    assert.deepEqual(Common.values(Common.select()), []);
   });
 
   it('can remove an item by unchecking selection checkbox', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
 
-    var $selections = Common.selection();
-    var $checkbox = $selections.children('input[type=checkbox]');
-    $checkbox.click();
+    let selections = Common.selection();
+    let checkbox = Common.directChild(selections[0], 'input[type=checkbox]') as HTMLInputElement;
+    checkbox.click();
 
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    assert.deepEqual(Common.values(Common.select()), []);
   });
 
   it('removing an item does not remove any others', () => {
-    $('select').append('<option value=\'one\' data-section=\'section\' selected>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'section\' selected>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'section\' selected>Three</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'section\' selected>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'section\' selected>Three</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one', 'two', 'three']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two', 'three']);
 
-    var $selections = Common.selected();
-    assert.equal($selections.length, 3);
+    let selections = Common.selected();
+    assert.equal(selections.length, 3);
 
-    var $removeSpan = $selections.first().children('.remove-selected');
-    $removeSpan.click();
+    let removeSpan = Common.directChild(selections[0], '.remove-selected') as HTMLElement;
+    removeSpan.click();
 
     assert.equal(Common.selected().length, 2);
-    assert.deepEqual($('select').val(), ['two', 'three']);
+    assert.deepEqual(Common.values(Common.select()), ['two', 'three']);
   });
 
   it('fires change event on original select', () => {
     return new Promise<void>((resolve) => {
-      $('select').append('<option value=\'one\' data-section=\'section\' selected>One</option>');
-      $('select').treeMultiselect();
+      Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'section\' selected>One</option>');
+      treeMultiselect(Common.select());
 
-      $('select').change(function() {
+      Common.select().addEventListener('change', () => {
         resolve();
       });
 
-      Common.selection().children('input[type=checkbox]').click();
+      let checkbox = Common.directChild(Common.selection()[0], 'input[type=checkbox]') as HTMLInputElement;
+      checkbox.click();
     });
   });
 });

@@ -1,52 +1,55 @@
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+
 import Common from './common.js';
 
 describe('Binding multiple selects', () => {
   it('creates one independent tree per matched select', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
 
-    var second = Common.createFixtureSelect();
-    $(second).append('<option value=\'two\' data-section=\'test\'>Two</option>');
+    let second = Common.createFixtureSelect();
+    Common.appendOptions(second, '<option value=\'two\' data-section=\'test\'>Two</option>');
 
-    var handles = $('select').treeMultiselect();
+    let handles = treeMultiselect([Common.select(), second]);
 
     assert.equal(handles.length, 2);
-    assert.equal($('.tree-multiselect').length, 2);
+    assert.equal(Common.all('.tree-multiselect').length, 2);
 
-    var $trees = $('.tree-multiselect');
-    var valuesPerTree = Array.from($trees).map((tree) => {
-      return $(tree).find('.selections div.item').map((itemIdx, item) => $(item).attr('data-value')).get();
+    let valuesPerTree = Common.all('.tree-multiselect').map((tree) => {
+      return Array.from(tree.querySelectorAll('.selections div.item'))
+        .map((item) => item.getAttribute('data-value'));
     });
 
     assert.deepEqual(valuesPerTree, [['one'], ['two']]);
   });
 
   it('keeps checkbox ids unique across trees', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
 
-    var second = Common.createFixtureSelect();
-    $(second).append('<option value=\'two\' data-section=\'test\'>Two</option>');
+    let second = Common.createFixtureSelect();
+    Common.appendOptions(second, '<option value=\'two\' data-section=\'test\'>Two</option>');
 
-    $('select').treeMultiselect();
+    treeMultiselect([Common.select(), second]);
 
-    var ids = $('input.option[type=checkbox]').map((idx, el) => el.id).get();
+    let ids = Common.all('input.option[type=checkbox]').map((element) => (element as HTMLInputElement).id);
     assert.equal(ids.length, 2);
     assert.equal(new Set(ids).size, ids.length);
   });
 
   it('selects only the item in the tree that was clicked', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
 
-    var second = Common.createFixtureSelect();
-    $(second).append('<option value=\'two\' data-section=\'test\'>Two</option>');
+    let second = Common.createFixtureSelect();
+    Common.appendOptions(second, '<option value=\'two\' data-section=\'test\'>Two</option>');
 
-    $('select').treeMultiselect();
+    treeMultiselect([Common.select(), second]);
 
-    var $trees = $('.tree-multiselect');
-    $trees.eq(0).find('.selections div.item > input.option[type=checkbox]').click();
+    let trees = Common.all('.tree-multiselect');
+    let checkbox = trees[0].querySelector('.selections div.item > input.option[type=checkbox]') as HTMLInputElement;
+    checkbox.click();
 
-    assert.deepEqual($('select').val(), ['one']);
-    assert.deepEqual($(second).val(), []);
-    assert.equal($trees.eq(0).find('.selected div.item').length, 1);
-    assert.equal($trees.eq(1).find('.selected div.item').length, 0);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
+    assert.deepEqual(Common.values(second), []);
+    assert.equal(trees[0].querySelectorAll('.selected div.item').length, 1);
+    assert.equal(trees[1].querySelectorAll('.selected div.item').length, 0);
   });
 });

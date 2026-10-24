@@ -1,14 +1,20 @@
-import jQuery from 'jquery';
+import { treeMultiselect } from '../src/tree-multiselect.js';
 
 import './setup.js';
 
-const $select = jQuery('#test-select');
+const select = document.querySelector('#test-select') as HTMLSelectElement;
 for (let ii = 0; ii < 2000; ++ii) {
-  const $option = jQuery('<option value="fruit' + ii + '" data-section="Smoothies/' + ii + '" data-description="The greatest flavor" selected="selected">Passion Fruit</option>');
-  $select.append($option);
+  let option = document.createElement('option');
+  option.value = 'fruit' + ii;
+  option.setAttribute('data-section', 'Smoothies/' + ii);
+  option.setAttribute('data-description', 'The greatest flavor');
+  option.selected = true;
+  option.textContent = 'Passion Fruit';
+  select.appendChild(option);
 }
+
 const time = Date.now();
 console.profile('tree-multiselect');
-$select.treeMultiselect({ enableSelectAll: true, sortable: true, searchable: true });
+treeMultiselect(select, { enableSelectAll: true, sortable: true, searchable: true });
 console.profileEnd();
 console.log('time elapsed - ' + (Date.now() - time) + 'ms');

@@ -1,244 +1,208 @@
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+import { dragItemPast } from './pointer-events.js';
+
 import Common from './common.js';
 
 import type { TreeMultiselectItem } from '../../src/tree-multiselect/types.js';
 
 describe('Options', () => {
   it('is collapsible', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\'>Three</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\'>Three</option>');
+    treeMultiselect(Common.select());
 
-    var $section = Common.section();
-    assert.equal($section.length, 1);
+    let sections = Common.section();
+    assert.equal(sections.length, 1);
 
-    var $title = $section.children('div.title');
-    assert.equal($title.length, 1);
+    let titles = Common.directChildren(sections[0], 'div.title');
+    assert.equal(titles.length, 1);
 
-    Common.section().each(function() {
-      assert(!$(this).hasClass('collapsed'));
-    });
+    for (let section of Common.section()) {
+      assert(!Common.hasClass(section, 'collapsed'));
+    }
 
-    $title.click();
+    titles[0].click();
 
-    Common.section().each(function() {
-      assert($(this).hasClass('collapsed'));
-    });
+    for (let section of Common.section()) {
+      assert(Common.hasClass(section, 'collapsed'));
+    }
   });
 
   it('startCollapsed', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test/inner\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test/inner2\'>Three</option>');
-    $('select').append('<option value=\'1\' data-section=\'another\'>Beep</option>');
-    var options = {
-      startCollapsed: true
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test/inner\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test/inner2\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'1\' data-section=\'another\'>Beep</option>');
+    treeMultiselect(Common.select(), { startCollapsed: true });
 
-    var $section = Common.section();
-    assert.equal($section.length, 4);
-    var $hiddenSections = $section.filter((idx, el) => {
-      return $(el).hasClass('collapsed');
-    });
-    assert.equal($hiddenSections.length, 4);
+    let sections = Common.section();
+    assert.equal(sections.length, 4);
+    let hiddenSections = sections.filter((section) => Common.hasClass(section, 'collapsed'));
+    assert.equal(hiddenSections.length, 4);
   });
 
   it('startCollapsed doesn\'t do anything if collapsible is false', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\'>Three</option>');
 
-    $('select').append('<option value=\'four\' data-section=\'test/inner\'>Four</option>');
-    $('select').append('<option value=\'five\' data-section=\'test/inner2\'>Five</option>');
-    $('select').append('<option value=\'Six\' data-section=\'test/inner2\'>Six</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'test/inner\'>Four</option>');
+    Common.appendOptions(Common.select(), '<option value=\'five\' data-section=\'test/inner2\'>Five</option>');
+    Common.appendOptions(Common.select(), '<option value=\'Six\' data-section=\'test/inner2\'>Six</option>');
 
-    var options = {
-      collapsible: false,
-      startCollapsed: true
-    };
+    treeMultiselect(Common.select(), { collapsible: false, startCollapsed: true });
 
-    $('select').treeMultiselect(options);
+    let sections = Common.section();
+    assert.equal(sections.length, 3);
 
-    var $section = Common.section();
-    assert.equal($section.length, 3);
+    let titles = sections.map((section) => Common.directChild(section, 'div.title'));
+    assert.equal(titles.length, 3);
 
-    var $title = $section.children('div.title');
-    assert.equal($title.length, 3);
+    for (let element of Common.selection()) {
+      assert.notOk(Common.hasClass(element, 'collapsed'));
+    }
 
-    Common.selection().each(function() {
-      assert.notOk($(this).hasClass('collapsed'));
-    });
-
-    $title.each(function (this: HTMLElement) {
-      $(this).click();
-      Common.selection().each(function() {
-        assert.notOk($(this).hasClass('collapsed'));
-      });
-    });
+    for (let title of titles) {
+      (title as HTMLElement).click();
+      for (let element of Common.selection()) {
+        assert.notOk(Common.hasClass(element, 'collapsed'));
+      }
+    }
   });
 
   it('can set a different section delimiter', () => {
-    var options = {
-      sectionDelimiter: '-'
-    };
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'top-inner\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'top-inner\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'top-inner2\'>Three</option>');
 
-    $('select').append('<option value=\'one\' data-section=\'top-inner\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'top-inner\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'top-inner2\'>Three</option>');
+    treeMultiselect(Common.select(), { sectionDelimiter: '-' });
 
-    $('select').treeMultiselect(options);
+    let selections = Common.selection();
+    assert.equal(selections.length, 3);
 
-    var $selections = Common.selection();
-    assert.equal($selections.length, 3);
+    let sections = Common.section();
+    assert.equal(sections.length, 3);
+    let innerSections = Common.directChildren(sections[0], '.section');
+    assert.equal(innerSections.length, 2);
 
-    var $sections = Common.section();
-    assert.equal($selections.length, 3);
-    var $innerSections = $sections.first().children('.section');
-    assert.equal($innerSections.length, 2);
-
-    assert.equal(Common.textOf($innerSections.first().children('div.title')), 'inner');
-    assert.equal(Common.textOf($innerSections.last().children('div.title')), 'inner2');
+    assert.equal(Common.textOf(Common.directChild(innerSections[0], 'div.title') as HTMLElement), 'inner');
+    assert.equal(Common.textOf(Common.directChild(innerSections[1], 'div.title') as HTMLElement), 'inner2');
   });
 
   it('can disable batch selection', () => {
-    var options = {
-      allowBatchSelection: false
-    };
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'test/inner\'>Four</option>');
+    Common.appendOptions(Common.select(), '<option value=\'five\' data-section=\'test/inner2\'>Five</option>');
+    Common.appendOptions(Common.select(), '<option value=\'Six\' data-section=\'test/inner2\'>Six</option>');
+    treeMultiselect(Common.select(), { allowBatchSelection: false });
 
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\'>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'test/inner\'>Four</option>');
-    $('select').append('<option value=\'five\' data-section=\'test/inner2\'>Five</option>');
-    $('select').append('<option value=\'Six\' data-section=\'test/inner2\'>Six</option>');
-    $('select').treeMultiselect(options);
-
-    assert.equal($('input.section[type=checkbox]').length, 0);
+    assert.equal(Common.all('input.section[type=checkbox]').length, 0);
   });
 
   it('can disable section display for selected items', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' data-description=\'foobar\' selected=\'selected\'>One</option>');
-    var options = {
-      showSectionOnSelected: false
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' data-description=\'foobar\' selected=\'selected\'>One</option>');
+    treeMultiselect(Common.select(), { showSectionOnSelected: false });
 
-    var $selectedItem = Common.selection();
-    assert.equal($selectedItem.length, 1);
-    assert.equal($selectedItem.find('span.section-name').length, 0);
+    let selectedItem = Common.selection();
+    assert.equal(selectedItem.length, 1);
+    assert.equal(selectedItem[0].querySelectorAll('span.section-name').length, 0);
   });
 
   it('can freeze selections', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    var options = {
-      freeze: true
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    treeMultiselect(Common.select(), { freeze: true });
 
-    var $checkboxes = Common.selection().children('input[type=checkbox]');
-    assert.equal($checkboxes.length, 2);
-    $checkboxes.each(function() {
-      var $checkbox = $(this);
-      assert($checkbox.attr('disabled'));
-    });
+    let checkboxes = Common.selectionCheckbox();
+    assert.equal(checkboxes.length, 2);
+    for (let checkbox of checkboxes) {
+      assert(checkbox.disabled);
+    }
 
-    var removeSpans = $('div.selected span.remove-selected');
+    let removeSpans = Common.all('div.selected span.remove-selected');
     assert.equal(removeSpans.length, 0);
   });
 
   it('section checkboxes are indetermine if some children are selected', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    var options = {
-      freeze: true
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    treeMultiselect(Common.select(), { freeze: true });
 
-    var $sectionCheckbox = Common.sectionCheckbox({text: 'test'});
-    assert.equal($sectionCheckbox.length, 1);
-    var checkbox = $sectionCheckbox[0] as HTMLInputElement;
-    assert(checkbox.indeterminate);
-    assert(!checkbox.checked);
+    let sectionCheckbox = Common.sectionCheckbox({ text: 'test' })[0];
+    assert(sectionCheckbox !== undefined);
+    assert(sectionCheckbox.indeterminate);
+    assert(!sectionCheckbox.checked);
   });
 
   it('applies only to one tree and not another', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    treeMultiselect(Common.select());
 
-    $('#fixture').append('<select id=\'frozen\'></select>');
-    $('select#frozen').append('<option value=\'two\' data-section=\'anothertest\' selected=\'selected\'>Two</option>');
-    var options = {
-      freeze: true
-    };
-    $('select#frozen').treeMultiselect(options);
+    let frozen = Common.appendSelect('frozen', '<option value=\'two\' data-section=\'anothertest\' selected=\'selected\'>Two</option>');
+    treeMultiselect(frozen, { freeze: true });
 
-    var $frozenOption = Common.selection({text: 'Two'});
-    assert.equal($frozenOption.length, 1);
-    assert($frozenOption.find('input[type=checkbox]').attr('disabled'));
+    let frozenOption = Common.selection({ text: 'Two' })[0];
+    assert(frozenOption !== undefined);
+    assert((frozenOption.querySelector('input[type=checkbox]') as HTMLInputElement).disabled);
 
-    var $unfrozenOption = Common.selection({text: 'One'});
-    assert.equal($unfrozenOption.length, 1);
-    var $checkbox = $unfrozenOption.find('input[type=checkbox]');
-    assert.notOk($checkbox.attr('disabled'));
-    $checkbox.click();
+    let unfrozenOption = Common.selection({ text: 'One' })[0];
+    assert(unfrozenOption !== undefined);
+    let checkbox = unfrozenOption.querySelector('input[type=checkbox]') as HTMLInputElement;
+    assert.notOk(checkbox.disabled);
+    checkbox.click();
 
-    var $unfrozenSelection = Common.selected({text: 'One'});
-    assert.equal($unfrozenSelection.length, 1);
-    assert.deepEqual($('select').val(), ['one']);
-    assert.deepEqual($('select#frozen').val(), ['two']);
+    let unfrozenSelection = Common.selected({ text: 'One' });
+    assert.equal(unfrozenSelection.length, 1);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
+    assert.deepEqual(Common.values(frozen), ['two']);
   });
 
   it('hides side panel', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    var options = {
-      hideSidePanel: true
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    treeMultiselect(Common.select(), { hideSidePanel: true });
 
-    assert.equal($('div.selected').length, 0);
+    assert.equal(Common.all('div.selected').length, 0);
   });
 
   it('onlyBatchSelection gives checkboxes to only sections', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    var options = {
-      onlyBatchSelection: true
-    };
-    $('select').treeMultiselect(options);
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    treeMultiselect(Common.select(), { onlyBatchSelection: true });
 
-    assert.equal($('input.section[type=checkbox]').length, 1);
-    assert.equal($('input.option[type=checkbox]').length, 0);
+    assert.equal(Common.all('input.section[type=checkbox]').length, 1);
+    assert.equal(Common.all('input.option[type=checkbox]').length, 0);
   });
 
   it('can select and unselect through section checkboxes with onlyBatchSelection', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').treeMultiselect({ onlyBatchSelection: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    treeMultiselect(Common.select(), { onlyBatchSelection: true });
 
-    var $sectionCheckbox = Common.sectionCheckbox({ text: 'test' });
+    let sectionCheckbox = Common.sectionCheckbox({ text: 'test' })[0];
 
-    $sectionCheckbox.click();
+    sectionCheckbox.click();
     assert.equal(Common.selected().length, 2);
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
 
-    $sectionCheckbox.click();
+    sectionCheckbox.click();
     assert.equal(Common.selected().length, 0);
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    assert.deepEqual(Common.values(Common.select()), []);
   });
 
   it('calls onChange with correct arguments when item is added', () => {
     return new Promise<void>((resolve) => {
-      $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-      $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-      var options = {
-        onChange: function(all: TreeMultiselectItem[], added: TreeMultiselectItem[], removed: TreeMultiselectItem[]) {
+      Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+      Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+      treeMultiselect(Common.select(), {
+        onChange: function (all: TreeMultiselectItem[], added: TreeMultiselectItem[], removed: TreeMultiselectItem[]) {
           assert.equal(all.length, 2);
           assert.equal(added.length, 1);
           assert.equal(removed.length, 0);
-          var expectedSecondSelections = [all[1], added[0]];
-          for (var i = 0; i < expectedSecondSelections.length; ++i) {
-            var selection = expectedSecondSelections[i];
+          let expectedSecondSelections = [all[1], added[0]];
+          for (let ii = 0; ii < expectedSecondSelections.length; ++ii) {
+            let selection = expectedSecondSelections[ii];
             assert.equal(selection.text, 'Two');
             assert.equal(selection.value, 'two');
             assert.isNull(selection.initialIndex);
@@ -250,21 +214,20 @@ describe('Options', () => {
           assert.equal(all[0].section, 'test');
           resolve();
         }
-      };
-      $('select').treeMultiselect(options);
+      });
 
-      var $item = Common.selection({text: 'Two'});
-      assert.equal($item.length, 1);
-      $item.find('input[type=checkbox]').click();
+      let item = Common.selection({ text: 'Two' })[0];
+      assert(item !== undefined);
+      (item.querySelector('input[type=checkbox]') as HTMLInputElement).click();
     });
   });
 
   it('calls onChange with correct arguments when item is removed', () => {
     return new Promise<void>((resolve) => {
-      $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-      $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-      var options = {
-        onChange: function(all: TreeMultiselectItem[], added: TreeMultiselectItem[], removed: TreeMultiselectItem[]) {
+      Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+      Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+      treeMultiselect(Common.select(), {
+        onChange: function (all: TreeMultiselectItem[], added: TreeMultiselectItem[], removed: TreeMultiselectItem[]) {
           assert.equal(all.length, 0);
           assert.equal(added.length, 0);
           assert.equal(removed.length, 1);
@@ -274,237 +237,214 @@ describe('Options', () => {
           assert.equal(removed[0].section, 'test');
           resolve();
         }
-      };
-      $('select').treeMultiselect(options);
+      });
 
-      var $item = Common.selection({text: 'One'});
-      assert.equal($item.length, 1);
-      $item.find('input[type=checkbox]').click();
+      let item = Common.selection({ text: 'One' })[0];
+      assert(item !== undefined);
+      (item.querySelector('input[type=checkbox]') as HTMLInputElement).click();
     });
   });
 
   it('fixes original select value when sorted', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected>Two</option>');
-    $('select').treeMultiselect({ sortable: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected>Two</option>');
+    treeMultiselect(Common.select(), { sortable: true });
 
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
 
-    var $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    var $one = $selected.first();
-    var $two = $selected.last();
+    let selected = Common.selected();
+    assert.equal(selected.length, 2);
+    let one = selected[0];
+    let two = selected[selected.length - 1];
 
-    assert($('div.selected').sortable('option', 'start'));
-    $('div.selected').sortable('option', 'start')(null, {
-      item: $one
-    });
-    $one.insertAfter($two);
-    assert($('div.selected').sortable('option', 'stop'));
-    $('div.selected').sortable('option', 'stop')(null, {
-      item: $one
-    });
+    assert(Common.hasClass(Common.all('div.selected')[0], 'sortable-enabled'));
+    dragItemPast(one, two, 'after');
 
-    assert.deepEqual($('select').val(), ['two', 'one']);
+    assert.deepEqual(Common.values(Common.select()), ['two', 'one']);
   });
 
   it('puts selected items in right order when sorted', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected>Two</option>');
-    $('select').treeMultiselect({ sortable: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected>Two</option>');
+    treeMultiselect(Common.select(), { sortable: true });
 
-    var $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    var $one = $selected.first();
-    var $two = $selected.last();
+    let selected = Common.selected();
+    assert.equal(selected.length, 2);
+    let one = selected[0];
+    let two = selected[selected.length - 1];
 
-    Common.assertSelected($one, {text: 'One', value: 'one', section: 'test'});
-    Common.assertSelected($two, {text: 'Two', value: 'two', section: 'test'});
+    Common.assertSelected(one, { text: 'One', value: 'one', section: 'test' });
+    Common.assertSelected(two, { text: 'Two', value: 'two', section: 'test' });
 
-    assert($('div.selected').sortable('option', 'start'));
-    $('div.selected').sortable('option', 'start')(null, {
-      item: $one
-    });
-    $one.insertAfter($two);
-    assert($('div.selected').sortable('option', 'stop'));
-    $('div.selected').sortable('option', 'stop')(null, {
-      item: $one
-    });
+    dragItemPast(one, two, 'after');
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    Common.assertSelected($selected.first(), {text: 'Two', value: 'two', section: 'test'});
-    Common.assertSelected($selected.last(), {text: 'One', value: 'one', section: 'test'});
+    selected = Common.selected();
+    assert.equal(selected.length, 2);
+    Common.assertSelected(selected[0], { text: 'Two', value: 'two', section: 'test' });
+    Common.assertSelected(selected[selected.length - 1], { text: 'One', value: 'one', section: 'test' });
   });
 
   it('doesn\'t do anything when sorted in same order', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected>Two</option>');
-    $('select').treeMultiselect({ sortable: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected>Two</option>');
+    treeMultiselect(Common.select(), { sortable: true });
 
-    var $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    var $one = $selected.first();
-    var $two = $selected.last();
+    let selected = Common.selected();
+    assert.equal(selected.length, 2);
+    let one = selected[0];
+    let two = selected[selected.length - 1];
 
-    Common.assertSelected($one, {text: 'One', value: 'one', section: 'test'});
-    Common.assertSelected($two, {text: 'Two', value: 'two', section: 'test'});
+    Common.assertSelected(one, { text: 'One', value: 'one', section: 'test' });
+    Common.assertSelected(two, { text: 'Two', value: 'two', section: 'test' });
 
-    assert($('div.selected').sortable('option', 'start'));
-    $('div.selected').sortable('option', 'start')(null, {
-      item: $one
-    });
-    assert($('div.selected').sortable('option', 'stop'));
-    $('div.selected').sortable('option', 'stop')(null, {
-      item: $one
-    });
+    dragItemPast(one, two, 'before');
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 2);
-    Common.assertSelected($selected.first(), {text: 'One', value: 'one', section: 'test'});
-    Common.assertSelected($selected.last(), {text: 'Two', value: 'two', section: 'test'});
+    selected = Common.selected();
+    assert.equal(selected.length, 2);
+    Common.assertSelected(selected[0], { text: 'One', value: 'one', section: 'test' });
+    Common.assertSelected(selected[selected.length - 1], { text: 'Two', value: 'two', section: 'test' });
   });
 
   it('select all button works', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').treeMultiselect({ enableSelectAll: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    treeMultiselect(Common.select(), { enableSelectAll: true });
 
-    var $selectAll = $('.select-all');
-    assert.equal($selectAll.length, 1);
+    let selectAll = document.querySelector('.select-all') as HTMLElement;
+    assert(selectAll !== null);
 
-    var $selectedItems = Common.selected();
-    assert.equal($selectedItems.length, 0);
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    let selectedItems = Common.selected();
+    assert.equal(selectedItems.length, 0);
+    assert.deepEqual(Common.values(Common.select()), [], 'an empty multi-select has no values');
 
-    $selectAll.click();
+    selectAll.click();
 
-    $selectedItems = Common.selected();
-    assert.equal($selectedItems.length, 2);
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    selectedItems = Common.selected();
+    assert.equal(selectedItems.length, 2);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
   });
 
   it('unselect button works', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    $('select').treeMultiselect({ enableSelectAll: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    treeMultiselect(Common.select(), { enableSelectAll: true });
 
-    var $unselectAll = $('.unselect-all');
-    assert.equal($unselectAll.length, 1);
+    let unselectAll = document.querySelector('.unselect-all') as HTMLElement;
+    assert(unselectAll !== null);
 
-    var $selectedItems = Common.selected();
-    assert.equal($selectedItems.length, 2);
-    assert.deepEqual($('select').val(), ['one', 'two']);
+    let selectedItems = Common.selected();
+    assert.equal(selectedItems.length, 2);
+    assert.deepEqual(Common.values(Common.select()), ['one', 'two']);
 
-    $unselectAll.click();
+    unselectAll.click();
 
-    $selectedItems = Common.selected();
-    assert.equal($selectedItems.length, 0);
-    assert.deepEqual($('select').val(), [], 'jQuery 3.7+ returns [] (not null) for an empty multi-select');
+    selectedItems = Common.selected();
+    assert.equal(selectedItems.length, 0);
+    assert.deepEqual(Common.values(Common.select()), [], 'an empty multi-select has no values');
   });
 
   it('select all text option', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    var selectAllText = 'foobar';
-    $('select').treeMultiselect({ enableSelectAll: true, selectAllText: selectAllText });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    let selectAllText = 'foobar';
+    treeMultiselect(Common.select(), { enableSelectAll: true, selectAllText: selectAllText });
 
-    var $selectAll = $('.select-all');
-    assert.equal($selectAll.text(), selectAllText);
+    let selectAll = document.querySelector('.select-all') as HTMLElement;
+    assert.equal(selectAll.textContent, selectAllText);
   });
 
   it('unselect all text option', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    var unselectAllText = 'foobar';
-    $('select').treeMultiselect({ enableSelectAll: true, unselectAllText: unselectAllText });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    let unselectAllText = 'foobar';
+    treeMultiselect(Common.select(), { enableSelectAll: true, unselectAllText: unselectAllText });
 
-    var $unselectAll = $('.unselect-all');
-    assert.equal($unselectAll.text(), unselectAllText);
+    let unselectAll = document.querySelector('.unselect-all') as HTMLElement;
+    assert.equal(unselectAll.textContent, unselectAllText);
   });
 
   it('can have individual readonly attributes', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\' readonly>Two</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\' readonly>Two</option>');
+    treeMultiselect(Common.select());
 
-    var $firstSelectionCheckbox = Common.selectionCheckbox({value: 'one'});
-    assert.equal($firstSelectionCheckbox.length, 1);
-    assert.isFalse($firstSelectionCheckbox.prop('disabled'));
+    let firstSelectionCheckbox = Common.selectionCheckbox({ value: 'one' });
+    assert.equal(firstSelectionCheckbox.length, 1);
+    assert.isFalse(firstSelectionCheckbox[0].disabled);
 
-    $firstSelectionCheckbox = Common.selectionCheckbox({value: 'two'});
-    assert.equal($firstSelectionCheckbox.length, 1);
-    assert.isTrue($firstSelectionCheckbox.prop('disabled'));
+    let secondSelectionCheckbox = Common.selectionCheckbox({ value: 'two' });
+    assert.equal(secondSelectionCheckbox.length, 1);
+    assert.isTrue(secondSelectionCheckbox[0].disabled);
   });
 
   it('has readonly attributes that still appear in select val', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected readonly>One</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected readonly>One</option>');
+    treeMultiselect(Common.select());
 
-    assert.deepEqual($('select').val(), ['one']);
+    assert.deepEqual(Common.values(Common.select()), ['one']);
   });
 
   it('cannot remove readonly elements by selected elements', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\' readonly>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    $('select').treeMultiselect();
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\' readonly>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    treeMultiselect(Common.select());
 
-    var $selected = Common.selected();
-    assert.equal($selected.length, 2);
+    let selected = Common.selected();
+    assert.equal(selected.length, 2);
 
-    var $selectedCheckboxes = $selected.children('span.remove-selected');
-    assert.equal($selectedCheckboxes.length, 1);
-    $selectedCheckboxes.click();
+    let removeSpans = Common.all('.selected .item > span.remove-selected');
+    assert.equal(removeSpans.length, 1);
+    (removeSpans[0] as HTMLElement).click();
 
-    $selected = Common.selected();
-    assert.equal($selected.length, 1);
+    selected = Common.selected();
+    assert.equal(selected.length, 1);
 
-    $selected = Common.selected({value: 'one'});
-    assert.equal($selected.length, 1);
+    selected = Common.selected({ value: 'one' });
+    assert.equal(selected.length, 1);
   });
 
   it('can set a maximum number of selections', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
-    $('select').treeMultiselect({maxSelections: 2});
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
+    treeMultiselect(Common.select(), { maxSelections: 2 });
 
     assert.equal(Common.selected().length, 2);
-    assert.deepEqual($('select').val(), ['three', 'four']);
+    assert.deepEqual(Common.values(Common.select()), ['three', 'four']);
 
-    var $checkbox = Common.selectionCheckbox();
-    $checkbox.first().click();
+    let checkboxes = Common.selectionCheckbox();
+    checkboxes[0].click();
 
     assert.equal(Common.selected().length, 2);
-    assert.deepEqual($('select').val(), ['four', 'one']);
+    assert.deepEqual(Common.values(Common.select()), ['four', 'one']);
   });
 
   it('maximum number of selections doesn\'t work with negative numbers', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
-    $('select').treeMultiselect({maxSelections: -1});
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
+    treeMultiselect(Common.select(), { maxSelections: -1 });
 
     assert.equal(Common.selected().length, 4);
   });
 
   it('maximum number of selections doesn\'t work with non-numerical truthy values', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
-    $('select').append('<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
-    $('select').treeMultiselect({maxSelections: true as unknown as number});
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\' selected=\'selected\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\' selected=\'selected\'>Three</option>');
+    Common.appendOptions(Common.select(), '<option value=\'four\' data-section=\'test\' selected=\'selected\'>Four</option>');
+    treeMultiselect(Common.select(), { maxSelections: true as unknown as number });
 
     assert.equal(Common.selected().length, 4);
   });
 
   it('applies maxSelections to a batch selection made through a section checkbox', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-    $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-    $('select').append('<option value=\'three\' data-section=\'test\'>Three</option>');
-    $('select').treeMultiselect({ maxSelections: 1 });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+    Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+    Common.appendOptions(Common.select(), '<option value=\'three\' data-section=\'test\'>Three</option>');
+    treeMultiselect(Common.select(), { maxSelections: 1 });
 
-    Common.sectionCheckbox({ text: 'test' }).click();
+    Common.sectionCheckbox({ text: 'test' })[0].click();
 
     assert.equal(Common.selected().length, 1);
     assert.equal(Common.selectionCheckbox({ checked: true }).length, 1);
@@ -512,26 +452,25 @@ describe('Options', () => {
 
   it('calls onChange with the post-change state when a section checkbox is clicked', () => {
     return new Promise<void>((resolve) => {
-      $('select').append('<option value=\'one\' data-section=\'test\'>One</option>');
-      $('select').append('<option value=\'two\' data-section=\'test\'>Two</option>');
-      var options = {
+      Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\'>One</option>');
+      Common.appendOptions(Common.select(), '<option value=\'two\' data-section=\'test\'>Two</option>');
+      treeMultiselect(Common.select(), {
         onChange: function (all: TreeMultiselectItem[], added: TreeMultiselectItem[], removed: TreeMultiselectItem[]) {
           assert.equal(all.length, 2);
           assert.equal(added.length, 2);
           assert.equal(removed.length, 0);
           resolve();
         }
-      };
-      $('select').treeMultiselect(options);
+      });
 
-      Common.sectionCheckbox({ text: 'test' }).click();
+      Common.sectionCheckbox({ text: 'test' })[0].click();
     });
   });
 
   it('does not make the selected panel sortable when selections are frozen', () => {
-    $('select').append('<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
-    $('select').treeMultiselect({ freeze: true, sortable: true });
+    Common.appendOptions(Common.select(), '<option value=\'one\' data-section=\'test\' selected=\'selected\'>One</option>');
+    treeMultiselect(Common.select(), { freeze: true, sortable: true });
 
-    assert.equal($('div.selected').hasClass('ui-sortable'), false);
+    assert.equal(Common.hasClass(Common.all('div.selected')[0], 'sortable-enabled'), false);
   });
 });

@@ -1,7 +1,8 @@
-import jQuery from 'jquery';
-import 'tree-multiselect-next';
+import { treeMultiselect } from 'tree-multiselect-next';
 
-const trees = jQuery('select').treeMultiselect({
+import type { TreeMultiselectHandle, TreeMultiselectOptions } from 'tree-multiselect-next';
+
+const options: TreeMultiselectOptions = {
   searchable: true,
   maxSelections: 3,
   onChange: (all, added, removed) => {
@@ -11,8 +12,14 @@ const trees = jQuery('select').treeMultiselect({
     void section;
     void added;
   }
-});
+};
 
-const handle = trees[0];
-handle.reload();
-handle.remove();
+const handles: TreeMultiselectHandle[] = treeMultiselect(
+  document.querySelectorAll<HTMLSelectElement>('select'),
+  options
+);
+
+const single: TreeMultiselectHandle[] = treeMultiselect(document.createElement('select'));
+
+single[0].reload();
+handles[0].remove();

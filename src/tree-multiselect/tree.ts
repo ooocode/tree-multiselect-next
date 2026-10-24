@@ -1,5 +1,5 @@
 import * as Ast from './ast/index.js';
-import { onDelegated } from './jquery-events.js';
+import { onDelegated } from './events.js';
 import Search from './search.js';
 import { makeSelectedPanelSortable } from './sortable.js';
 import UiBuilder from './ui-builder.js';
@@ -241,7 +241,7 @@ export default class Tree {
   }
 
   popupDescriptionHover (): void {
-    onDelegated<HTMLElement>(this.selectionContainer, 'mouseenter', 'div.item > span.description', (descriptionNode) => {
+    onDelegated<HTMLElement>(this.selectionContainer, 'mouseover', 'div.item > span.description', (descriptionNode) => {
       let itemNode = descriptionNode.parentElement as HTMLElement;
       let description = itemNode.getAttribute('data-description');
 
@@ -254,7 +254,7 @@ export default class Tree {
       itemNode.appendChild(descriptionDiv);
     });
 
-    onDelegated<HTMLElement>(this.selectionContainer, 'mouseleave', 'div.item > span.description', (descriptionNode) => {
+    onDelegated<HTMLElement>(this.selectionContainer, 'mouseout', 'div.item > span.description', (descriptionNode) => {
       let itemNode = descriptionNode.parentElement as HTMLElement;
       let popups = itemNode.querySelectorAll('div.temp-description-popup');
       for (let ii = 0; ii < popups.length; ++ii) {
@@ -558,7 +558,7 @@ export default class Tree {
         option.selected = shouldBeSelected;
       }
     }
-    // native change event: jQuery listeners bound with .on('change') still fire
+    // native change event: listeners bound with addEventListener still fire
     this.selectNode.dispatchEvent(new Event('change', { bubbles: true }));
 
     if (!noCallbacks && this.params.onChange) {

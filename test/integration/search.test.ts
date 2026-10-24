@@ -1,167 +1,179 @@
+import { treeMultiselect } from '../../src/tree-multiselect.js';
+
 import Common from './common.js';
 
 import type { FindOptions } from './common.js';
 
-function getVisibleSelections (props?: FindOptions) {
-  return Common.selection(props).filter((_, el) => {
-    return el.getAttribute('searchhit') === 'true';
+function getVisibleSelections (props?: FindOptions): HTMLElement[] {
+  return Common.selection(props).filter((element) => {
+    return element.getAttribute('searchhit') === 'true';
   });
 }
 
-function getHiddenSelections (props?: FindOptions) {
-  return Common.selection(props).filter((_, el) => {
-    return el.getAttribute('searchhit') === 'false';
+function getHiddenSelections (props?: FindOptions): HTMLElement[] {
+  return Common.selection(props).filter((element) => {
+    return element.getAttribute('searchhit') === 'false';
   });
+}
+
+function selectionHit (options: FindOptions): string | null {
+  let element = Common.selection(options)[0];
+  return element ? element.getAttribute('searchhit') : null;
+}
+
+function sectionHit (options: FindOptions): string | null {
+  let element = Common.section(options)[0];
+  return element ? element.getAttribute('searchhit') : null;
 }
 
 describe('Search', () => {
-  var $input!: JQuery;
+  let searchInput!: HTMLInputElement;
 
   describe('default behavior', () => {
     beforeEach(() => {
       // value, section
-      $('select').append('<option value=\'abcde\' data-section=\'s1\'></option>');
+      Common.appendOptions(Common.select(), '<option value=\'abcde\' data-section=\'s1\'></option>');
 
       // section
-      $('select').append('<option value=\'fghij\' data-section=\'s1\'>yyyyy</option>');
+      Common.appendOptions(Common.select(), '<option value=\'fghij\' data-section=\'s1\'>yyyyy</option>');
 
       // text
-      $('select').append('<option value=\'KLMNOP\' data-section=\'s2\'>klmnop</option>');
+      Common.appendOptions(Common.select(), '<option value=\'KLMNOP\' data-section=\'s2\'>klmnop</option>');
 
       // description
-      $('select').append('<option value=\'QRS\' data-section=\'ttt/uuu/vvv\' data-description=\'fox\'></option>');
+      Common.appendOptions(Common.select(), '<option value=\'QRS\' data-section=\'ttt/uuu/vvv\' data-description=\'fox\'></option>');
 
       // description with spaces
-      $('select').append('<option value=\'passion\' data-section=\'s3\' data-description=\'Passion\'></option>');
-      $('select').append('<option value=\'passionfruit\' data-section=\'fruit\' data-description=\'Passion Fruit\'></option>');
+      Common.appendOptions(Common.select(), '<option value=\'passion\' data-section=\'s3\' data-description=\'Passion\'></option>');
+      Common.appendOptions(Common.select(), '<option value=\'passionfruit\' data-section=\'fruit\' data-description=\'Passion Fruit\'></option>');
 
-      $('select').treeMultiselect({searchable: true, enableSelectAll: true});
+      treeMultiselect(Common.select(), { searchable: true, enableSelectAll: true });
 
-      $input = $('input.search');
-      assert.equal($input.length, 1);
+      searchInput = Common.all('input.search')[0] as HTMLInputElement;
+      assert(searchInput !== undefined);
     });
 
     it('matches on value', () => {
       ['a', 'c', 'abc', 'cde', 'bcd', 'abcde', 'abcd'].forEach((searchTerm) => {
-        $input.val(searchTerm).trigger('input');
-        assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'true');
-        assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'false');
+        Common.typeInto(searchInput, searchTerm);
+        assert.equal(selectionHit({ value: 'abcde' }), 'true');
+        assert.equal(selectionHit({ value: 'fghij' }), 'false');
+        assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+        assert.equal(selectionHit({ value: 'QRS' }), 'false');
       });
 
       ['fghij', 'ghi', 'fgh'].forEach((searchTerm) => {
-        $input.val(searchTerm).trigger('input');
-        assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'true');
-        assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'false');
+        Common.typeInto(searchInput, searchTerm);
+        assert.equal(selectionHit({ value: 'abcde' }), 'false');
+        assert.equal(selectionHit({ value: 'fghij' }), 'true');
+        assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+        assert.equal(selectionHit({ value: 'QRS' }), 'false');
       });
 
       ['q', 'qr', 'qrs', 'rs'].forEach((searchTerm) => {
-        $input.val(searchTerm).trigger('input');
-        assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-        assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'true');
+        Common.typeInto(searchInput, searchTerm);
+        assert.equal(selectionHit({ value: 'abcde' }), 'false');
+        assert.equal(selectionHit({ value: 'fghij' }), 'false');
+        assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+        assert.equal(selectionHit({ value: 'QRS' }), 'true');
       });
     });
 
     it('matches on section', () => {
-      $input.val('s1').trigger('input');
-      assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'true');
-      assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'true');
-      assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'false');
+      Common.typeInto(searchInput, 's1');
+      assert.equal(selectionHit({ value: 'abcde' }), 'true');
+      assert.equal(selectionHit({ value: 'fghij' }), 'true');
+      assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+      assert.equal(selectionHit({ value: 'QRS' }), 'false');
     });
 
     it('matches on text', () => {
-      $input.val('yyy').trigger('input');
-      assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'true');
-      assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'false');
+      Common.typeInto(searchInput, 'yyy');
+      assert.equal(selectionHit({ value: 'abcde' }), 'false');
+      assert.equal(selectionHit({ value: 'fghij' }), 'true');
+      assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+      assert.equal(selectionHit({ value: 'QRS' }), 'false');
     });
 
     it('matches on description', () => {
-      $input.val('fox').trigger('input');
-      assert.equal(Common.selection({value: 'abcde'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'fghij'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'KLMNOP'}).attr('searchhit'), 'false');
-      assert.equal(Common.selection({value: 'QRS'}).attr('searchhit'), 'true');
+      Common.typeInto(searchInput, 'fox');
+      assert.equal(selectionHit({ value: 'abcde' }), 'false');
+      assert.equal(selectionHit({ value: 'fghij' }), 'false');
+      assert.equal(selectionHit({ value: 'KLMNOP' }), 'false');
+      assert.equal(selectionHit({ value: 'QRS' }), 'true');
     });
 
     it('hides sections with no nodes visible', () => {
-      $input.val('s1').trigger('input');
-      assert.equal(Common.section({text: 's1'}).attr('searchhit'), 'true');
-      assert.equal(Common.section({text: 's2'}).attr('searchhit'), 'false');
-      assert.equal(Common.section({text: 'ttt'}).attr('searchhit'), 'false');
-      assert.equal(Common.section({text: 'uuu'}).attr('searchhit'), 'false');
-      assert.equal(Common.section({text: 'vvv'}).attr('searchhit'), 'false');
+      Common.typeInto(searchInput, 's1');
+      assert.equal(sectionHit({ text: 's1' }), 'true');
+      assert.equal(sectionHit({ text: 's2' }), 'false');
+      assert.equal(sectionHit({ text: 'ttt' }), 'false');
+      assert.equal(sectionHit({ text: 'uuu' }), 'false');
+      assert.equal(sectionHit({ text: 'vvv' }), 'false');
 
-      $input.val('uuu').trigger('input');
-      assert.equal(Common.section({text: 's1'}).attr('searchhit'), 'false');
-      assert.equal(Common.section({text: 's2'}).attr('searchhit'), 'false');
-      assert.equal(Common.section({text: 'ttt'}).attr('searchhit'), 'true');
-      assert.equal(Common.section({text: 'uuu'}).attr('searchhit'), 'true');
-      assert.equal(Common.section({text: 'vvv'}).attr('searchhit'), 'true');
+      Common.typeInto(searchInput, 'uuu');
+      assert.equal(sectionHit({ text: 's1' }), 'false');
+      assert.equal(sectionHit({ text: 's2' }), 'false');
+      assert.equal(sectionHit({ text: 'ttt' }), 'true');
+      assert.equal(sectionHit({ text: 'uuu' }), 'true');
+      assert.equal(sectionHit({ text: 'vvv' }), 'true');
     });
 
     it('shows all sections when no search term is entered', () => {
-      $input.val('43t#Q%').trigger('input'); // no nodes should be shown
+      Common.typeInto(searchInput, '43t#Q%'); // no nodes should be shown
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('').trigger('input'); // no nodes should be shown
+      Common.typeInto(searchInput, ''); // no nodes should be shown
       assert.equal(getHiddenSelections().length, 0);
     });
 
     it('only adds filtered selections when using section checkbox', () => {
-      $input.val('abcde').trigger('input');
+      Common.typeInto(searchInput, 'abcde');
 
       assert.equal(Common.selected().length, 0);
-      Common.sectionCheckbox({text: 's1'}).click();
+      Common.sectionCheckbox({ text: 's1' })[0].click();
       assert.equal(Common.selected().length, 1);
 
-      $input.val('fox').trigger('input');
+      Common.typeInto(searchInput, 'fox');
       assert.equal(Common.selected().length, 1);
-      var $tttCheckbox = Common.sectionCheckbox({text: 'ttt'});
-      $tttCheckbox.click();
+      let tttCheckbox = Common.sectionCheckbox({ text: 'ttt' })[0];
+      tttCheckbox.click();
       assert.equal(Common.selected().length, 2);
 
-      $tttCheckbox.click();
+      tttCheckbox.click();
       assert.equal(Common.selected().length, 1);
     });
 
     it('only adds filtered selections when selecting and unselecting all', () => {
-      $input.val('s1').trigger('input');
+      Common.typeInto(searchInput, 's1');
 
-      var $selectAll = $('.select-all');
-      var $unselectAll = $('.unselect-all');
-      assert.equal($selectAll.length, 1);
-      assert.equal($unselectAll.length, 1);
+      let selectAll = document.querySelector('.select-all') as HTMLElement;
+      let unselectAll = document.querySelector('.unselect-all') as HTMLElement;
+      assert(selectAll !== null);
+      assert(unselectAll !== null);
 
       assert.equal(Common.selected().length, 0);
-      $selectAll.click();
+      selectAll.click();
       assert.equal(Common.selected().length, 2);
 
-      $input.val('abcde').trigger('input');
-      $unselectAll.click();
+      Common.typeInto(searchInput, 'abcde');
+      unselectAll.click();
       assert.equal(Common.selected().length, 1);
     });
 
     it('handles empty search queries', () => {
-      $input.val(' ').trigger('input');
+      Common.typeInto(searchInput, ' ');
 
       assert.equal(getVisibleSelections().length, 0);
       assert.equal(getHiddenSelections().length, 0);
     });
 
     it('handles search queries with spaces in them', () => {
-      $input.val('passion ').trigger('input');
+      Common.typeInto(searchInput, 'passion ');
       assert.equal(getVisibleSelections().length, 2);
       assert.equal(getHiddenSelections().length, 4);
 
-      $input.val('passion f ').trigger('input');
+      Common.typeInto(searchInput, 'passion f ');
       assert.equal(getVisibleSelections().length, 1);
       assert.equal(getHiddenSelections().length, 5);
     });
@@ -169,77 +181,76 @@ describe('Search', () => {
 
   describe('custom search params', () => {
     beforeEach(() => {
-      $('select').append('<option value=\'abcde\' data-section=\'s1\' data-description=\'xyz\'>ayy</option>');
-
+      Common.appendOptions(Common.select(), '<option value=\'abcde\' data-section=\'s1\' data-description=\'xyz\'>ayy</option>');
     });
 
     it('section only', () => {
-      $('select').treeMultiselect({searchable: true, searchParams: ['section']});
-      $input = $('input.search');
+      treeMultiselect(Common.select(), { searchable: true, searchParams: ['section'] });
+      searchInput = Common.all('input.search')[0] as HTMLInputElement;
 
-      $input.val('s1').trigger('input');
+      Common.typeInto(searchInput, 's1');
       assert.equal(getVisibleSelections().length, 1);
 
-      $input.val('abc').trigger('input');
+      Common.typeInto(searchInput, 'abc');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('ayy').trigger('input');
+      Common.typeInto(searchInput, 'ayy');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('xyz').trigger('input');
+      Common.typeInto(searchInput, 'xyz');
       assert.equal(getVisibleSelections().length, 0);
     });
 
     it('value only', () => {
-      $('select').treeMultiselect({searchable: true, searchParams: ['value']});
-      $input = $('input.search');
+      treeMultiselect(Common.select(), { searchable: true, searchParams: ['value'] });
+      searchInput = Common.all('input.search')[0] as HTMLInputElement;
 
-      $input.val('s1').trigger('input');
+      Common.typeInto(searchInput, 's1');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('abc').trigger('input');
+      Common.typeInto(searchInput, 'abc');
       assert.equal(getVisibleSelections().length, 1);
 
-      $input.val('ayy').trigger('input');
+      Common.typeInto(searchInput, 'ayy');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('xyz').trigger('input');
+      Common.typeInto(searchInput, 'xyz');
       assert.equal(getVisibleSelections().length, 0);
     });
 
     it('text and description', () => {
-      $('select').treeMultiselect({searchable: true, searchParams: ['text', 'description']});
-      $input = $('input.search');
+      treeMultiselect(Common.select(), { searchable: true, searchParams: ['text', 'description'] });
+      searchInput = Common.all('input.search')[0] as HTMLInputElement;
 
-      $input.val('s1').trigger('input');
+      Common.typeInto(searchInput, 's1');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('abc').trigger('input');
+      Common.typeInto(searchInput, 'abc');
       assert.equal(getVisibleSelections().length, 0);
 
-      $input.val('ayy').trigger('input');
+      Common.typeInto(searchInput, 'ayy');
       assert.equal(getVisibleSelections().length, 1);
 
-      $input.val('xyz').trigger('input');
+      Common.typeInto(searchInput, 'xyz');
       assert.equal(getVisibleSelections().length, 1);
     });
   });
 
   describe('regex metacharacters', () => {
     beforeEach(() => {
-      $('select').append('<option value=\'a[b\' data-section=\'s1\'>a[b</option>');
-      $('select').append('<option value=\'plain\' data-section=\'s1\'>plain</option>');
-      $('select').treeMultiselect({ searchable: true });
-      $input = $('input.search');
+      Common.appendOptions(Common.select(), '<option value=\'a[b\' data-section=\'s1\'>a[b</option>');
+      Common.appendOptions(Common.select(), '<option value=\'plain\' data-section=\'s1\'>plain</option>');
+      treeMultiselect(Common.select(), { searchable: true });
+      searchInput = Common.all('input.search')[0] as HTMLInputElement;
     });
 
     it('matches a query containing regex metacharacters literally', () => {
-      $input.val('a[b').trigger('input');
+      Common.typeInto(searchInput, 'a[b');
       assert.equal(getVisibleSelections().length, 1);
     });
 
     it('does not treat a regex-like query as a regular expression', () => {
-      $input.val('.*').trigger('input');
+      Common.typeInto(searchInput, '.*');
       assert.equal(getVisibleSelections().length, 0);
     });
   });
