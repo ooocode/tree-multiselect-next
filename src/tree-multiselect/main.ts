@@ -4,7 +4,10 @@ import type { ResolvedTreeMultiselectOptions, TreeMultiselectHandle, TreeMultise
 
 let uniqueId = 0;
 
-export type TreeMultiselectTarget = HTMLSelectElement | Iterable<HTMLSelectElement>;
+export type TreeMultiselectTarget =
+  | HTMLSelectElement
+  | ArrayLike<HTMLSelectElement>
+  | Iterable<HTMLSelectElement>;
 
 // Creates one independent tree per `<select>` and returns a handle for each, in
 // the same order as the targets, so `treeMultiselect(select)[0]` works for the
@@ -41,17 +44,37 @@ function selectElements (target: TreeMultiselectTarget): HTMLSelectElement[] {
     return [target];
   }
 
-  if (target && typeof (target as Iterable<HTMLSelectElement>)[Symbol.iterator] === 'function') {
-    let selects = Array.from(target as Iterable<HTMLSelectElement>);
-    for (let ii = 0; ii < selects.length; ++ii) {
-      if (!isSelectElement(selects[ii])) {
-        throw new TypeError('treeMultiselect expects <select> elements');
-      }
-    }
-    return selects;
+  let selects = toSelectArray(target);
+  if (!selects) {
+    throw new TypeError('treeMultiselect expects a <select> element or a collection of them');
   }
 
-  throw new TypeError('treeMultiselect expects a <select> element or an iterable of them');
+  for (let ii = 0; ii < selects.length; ++ii) {
+    if (!isSelectElement(selects[ii])) {
+      throw new TypeError('treeMultiselect expects <select> elements');
+    }
+  }
+  return selects;
+}
+
+// NodeList/HTMLCollection are array-likes, but iterating them needs
+// Symbol.iterator. Walking the indices also works in older browsers.
+function toSelectArray (target: TreeMultiselectTarget): HTMLSelectElement[] | null {
+  if (target && typeof target === 'object') {
+    let arrayLike = target as ArrayLike<HTMLSelectElement>;
+    if (typeof arrayLike.length === 'number') {
+      let selects: HTMLSelectElement[] = [];
+      for (let ii = 0; ii < arrayLike.length; ++ii) {
+        selects.push(arrayLike[ii]);
+      }
+      return selects;
+    }
+
+    if (typeof (target as Iterable<HTMLSelectElement>)[Symbol.iterator] === 'function') {
+      return Array.from(target as Iterable<HTMLSelectElement>);
+    }
+  }
+  return null;
 }
 
 // Duck-typing keeps this working for elements created in another realm (iframe),

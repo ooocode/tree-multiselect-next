@@ -8,7 +8,17 @@ there was no plugin. If you want to add options dynamically, please continue
 reading, there are some more steps you need to take.
 
 * Make sure you've got `<meta charset="UTF-8">` in your `<head>` or some of the symbols may look strange.
-* Requires an environment that can consume ES modules (a bundler, or a browser that supports `import`). There are no runtime dependencies, and `sortable: true` uses Pointer Events.
+* Requires an environment that can consume ES modules (a bundler, or a browser that supports `import`). There are no runtime dependencies.
+
+### Browser support
+
+- Chrome 61+
+- Firefox 60+
+- Safari 11.1+
+- Chromium-based Edge 79+
+- IE11 is not supported (the package is ESM-only).
+
+The published code is ES2017. Drag sorting uses Pointer Events when available and falls back to mouse/touch events on Safari 11–12; FLIP animations are skipped where the Web Animations API is missing. Dark mode, `accent-color`, custom scrollbars and the custom focus ring are progressive enhancements: older browsers fall back to native controls and the light palette.
 
 ![demo image](demo.jpg "demo image")
 
@@ -132,7 +142,7 @@ import 'tree-multiselect-next/style.css'; // optional, but recommended
 treeMultiselect(document.querySelector('select'), {searchable: true});
 ```
 
-`sortable: true` is implemented with Pointer Events, so it works without loading any additional library. Dragging uses a FLIP animation for the items that make way, and all motion is disabled when the user prefers reduced motion.
+`sortable: true` needs no extra library: it uses Pointer Events with a mouse/touch fallback for older Safari, and FLIP animations where supported. All motion is disabled when the user prefers reduced motion.
 
 ### Theming
 
@@ -146,7 +156,7 @@ The stylesheet reads its colors and radii from CSS custom properties on `.tree-m
 }
 ```
 
-Available variables: `--tm-accent`, `--tm-accent-soft`, `--tm-bg`, `--tm-surface`, `--tm-bg-subtle`, `--tm-border`, `--tm-text`, `--tm-text-muted`, `--tm-hover`, `--tm-danger`, `--tm-shadow`, `--tm-radius`, `--tm-radius-sm`. Dark mode is applied automatically through `prefers-color-scheme: dark`.
+Available variables: `--tm-accent`, `--tm-accent-soft`, `--tm-bg`, `--tm-surface`, `--tm-bg-subtle`, `--tm-border`, `--tm-border-strong`, `--tm-text`, `--tm-text-muted`, `--tm-hover`, `--tm-danger`, `--tm-danger-soft`, `--tm-focus-ring`, `--tm-shadow`, `--tm-radius`, `--tm-radius-sm`. All target browsers support CSS custom properties; dark mode is applied automatically through `prefers-color-scheme: dark` where it is supported.
 
 ### Next.js / SSR
 
@@ -213,6 +223,7 @@ handles[0].reload();
 - Install dependencies: `npm install`
 - Run tests and linting: `npm test`
 - Type-check and lint only: `npm run typecheck`, `npm run lint`
+- Check the ES2017/CSS fallback baseline: `npm run check:legacy`
 - Build the distributable files into `dist/`: `npm run build`
 - Serve the demo pages: `npm run dev`
 

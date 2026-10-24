@@ -212,6 +212,103 @@ describe('selected panel sortable', () => {
     }
   });
 
+  it('reorders with mouse events when Pointer Events are unavailable', () => {
+    let originalPointerEvent = window.PointerEvent;
+    (window as unknown as Record<string, unknown>).PointerEvent = undefined;
+
+    try {
+      let { container, items } = createPanel(3);
+      let calls: Array<[number, number]> = [];
+      makeSelectedPanelSortable(container, (startIndex, endIndex) => {
+        calls.push([startIndex, endIndex]);
+      });
+
+      let startY = midY(items[0]);
+      let targetY = items[2].getBoundingClientRect().bottom - 1;
+      items[0].dispatchEvent(new MouseEvent('mousedown', {
+        bubbles: true, cancelable: true, button: 0, clientX: 10, clientY: startY
+      }));
+      document.dispatchEvent(new MouseEvent('mousemove', {
+        bubbles: true, cancelable: true, clientX: 10, clientY: targetY
+      }));
+      document.dispatchEvent(new MouseEvent('mouseup', {
+        bubbles: true, cancelable: true, clientX: 10, clientY: targetY
+      }));
+
+      assert.deepEqual(calls, [[0, 2]]);
+      assert.deepEqual(orderOf(container), ['B', 'C', 'A']);
+    } finally {
+      (window as unknown as Record<string, unknown>).PointerEvent = originalPointerEvent;
+    }
+  });
+
+  it('reorders with touch events when Pointer Events are unavailable', () => {
+    let originalPointerEvent = window.PointerEvent;
+    (window as unknown as Record<string, unknown>).PointerEvent = undefined;
+
+    try {
+      let { container, items } = createPanel(3);
+      let calls: Array<[number, number]> = [];
+      makeSelectedPanelSortable(container, (startIndex, endIndex) => {
+        calls.push([startIndex, endIndex]);
+      });
+
+      let startY = midY(items[0]);
+      let targetY = items[2].getBoundingClientRect().bottom - 1;
+      let startTouch = new Touch({ identifier: 1, target: items[0], clientX: 10, clientY: startY });
+      let moveTouch = new Touch({ identifier: 1, target: document, clientX: 10, clientY: targetY });
+
+      items[0].dispatchEvent(new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [startTouch],
+        targetTouches: [startTouch],
+        changedTouches: [startTouch]
+      }));
+      document.dispatchEvent(new TouchEvent('touchmove', {
+        bubbles: true,
+        cancelable: true,
+        touches: [moveTouch],
+        targetTouches: [moveTouch],
+        changedTouches: [moveTouch]
+      }));
+      document.dispatchEvent(new TouchEvent('touchend', {
+        bubbles: true,
+        cancelable: true,
+        touches: [],
+        targetTouches: [],
+        changedTouches: [moveTouch]
+      }));
+
+      assert.deepEqual(calls, [[0, 2]]);
+      assert.deepEqual(orderOf(container), ['B', 'C', 'A']);
+    } finally {
+      (window as unknown as Record<string, unknown>).PointerEvent = originalPointerEvent;
+    }
+  });
+
+  it('follows the pointer without DOMMatrixReadOnly', () => {
+    let originalMatrix = (window as unknown as Record<string, unknown>).DOMMatrixReadOnly;
+    (window as unknown as Record<string, unknown>).DOMMatrixReadOnly = undefined;
+
+    try {
+      let { container, items } = createPanel(3);
+      makeSelectedPanelSortable(container, () => {});
+
+      let startTop = items[0].getBoundingClientRect().top;
+      let startY = midY(items[0]);
+      firePointer('pointerdown', items[0], startY);
+      firePointer('pointermove', document, startY + 15);
+      firePointer('pointermove', document, startY + 20);
+
+      assert.closeTo(items[0].getBoundingClientRect().top, startTop + 20, 1);
+
+      firePointer('pointerup', document, startY + 20);
+    } finally {
+      (window as unknown as Record<string, unknown>).DOMMatrixReadOnly = originalMatrix;
+    }
+  });
+
   it('scrolls the panel while dragging near its bottom edge', async () => {
     let { container, items } = createPanel(10);
     container.style.height = '60px';

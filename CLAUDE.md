@@ -12,7 +12,7 @@ Install dependencies first: `npm install`. Node 24 is the development baseline.
 
 | Command | Purpose |
 | --- | --- |
-| `npm test` | `typecheck` + `lint` + `build:js` + `typecheck:consumer` + `test:ssr` + `vitest run` (the CI gate) |
+| `npm test` | `typecheck` + `lint` + `build:js` + `check:legacy` + `typecheck:consumer` + `test:ssr` + `vitest run` (the CI gate) |
 | `npm run typecheck` | `tsc -p tsconfig.json --noEmit` over `src/` and `test/` |
 | `npm run typecheck:file -- <path>` | Type-check one file and its import graph (TS 6 needs `--ignoreConfig` here) |
 | `npm run lint` | ESLint 10 flat config; add `--fix` to normalize quotes/indent |
@@ -21,10 +21,11 @@ Install dependencies first: `npm install`. Node 24 is the development baseline.
 | `npm run dev` | Vite-served pages in `demo/` |
 | `npm run test:watch` | Vitest watch mode |
 | `npm run test:ssr` | Import the built entry in DOM-less Node; guards SSR safety |
+| `npm run check:legacy` | Parse `dist/**/*.js` as ES2017 and reject post-baseline CSS/APIs |
 
 `npm run build` is what produces the published package; `dist/` is git-ignored and must never be edited by hand.
 
-**Browser requirement:** tests run in real Chrome via Vitest browser mode + Playwright with `launchOptions: { channel: 'chrome' }` (see [vitest.config.ts](vitest.config.ts)). Google Chrome must be installed locally; CI installs it with the CircleCI `browser-tools` orb.
+**Browser requirement:** the library targets Chrome 61+ / Firefox 60+ / Safari 11.1+ (ES2017, ESM); IE11 is out of scope. Tests run in real Chrome via Vitest browser mode + Playwright with `launchOptions: { channel: 'chrome' }` (see [vitest.config.ts](vitest.config.ts)). Google Chrome must be installed locally; CI installs it with the CircleCI `browser-tools` orb.
 
 ## Architecture
 
@@ -36,7 +37,7 @@ Key modules under [src/tree-multiselect/](src/tree-multiselect/):
 - `main.ts` — merges defaults and creates one `Tree` per `<select>`. Accepts a single select or an iterable (array/NodeList) via the exported `TreeMultiselectTarget` type and returns an array of `{ reload, remove }` handles.
 - `tree.ts` — the core: builds the AST from `<option>` children, renders HTML, and wires every event handler. Everything it does to the DOM is plain DOM API; it holds raw `HTMLElement`s.
 - `events.ts` — the single place event listeners are bound. Uses native `addEventListener` delegation on the tree root with `Element.closest()`; hover uses `mouseover`/`mouseout` because `mouseenter`/`mouseleave` do not bubble.
-- `sortable.ts` — the optional drag-to-reorder integration (`sortable: true`), implemented with native Pointer Events (no jQuery UI). Siblings that make way are animated with a FLIP (Web Animations API) and every animation is skipped under `prefers-reduced-motion`.
+- `sortable.ts` — the optional drag-to-reorder integration (`sortable: true`), implemented with native Pointer Events and a mouse/touch fallback for Safari 11–12 (no jQuery UI). Siblings that make way are animated with a FLIP (Web Animations API, skipped when unavailable); every animation is skipped under `prefers-reduced-motion`.
 - `ast/` — `Item` / `Section` classes backed by DOM nodes. Every item/section gets an integer `data-key` used as the primary identifier everywhere.
 - `search.ts` — trigram inverted index over the configured `searchParams`.
 - `ui-builder.ts` — the two-pane wrapper: `.selections` (left tree) and `.selected` (right side panel).
@@ -64,6 +65,7 @@ Search matches are applied by setting a `searchhit="true"|"false"` attribute on 
 ## Conventions and gotchas
 
 - **ESM + NodeNext:** every relative import in `src/` and `test/` must carry the `.js` suffix (e.g. `import Tree from './tree.js'`), even though the file on disk is `.ts`. Vite maps `.js` back to `.ts`; `tsc` emits correctly only with this convention.
+- **Browser baseline:** Chrome 61+ / Firefox 60+ / Safari 11.1+ (ES2017, ESM). Published JS must parse as ES2017 — no `?.`/`??`, no `export * as`, no `DOMMatrixReadOnly`/`Element.getAnimations`/`structuredClone`. CSS must not use flex `gap`, `color-mix()` or space-separated `rgb()` with alpha; use margins, custom properties and `rgba()`. `sortable.ts` feature-detects Pointer Events and falls back to mouse/touch. `npm run check:legacy` enforces these rules inside `npm test`.
 - **Plain DOM everywhere:** `tree.ts`, `ui-builder.ts`, `search.ts`, `ast/`, `utility/`, `events.ts` and `sortable.ts` use native DOM/JS APIs. There is no jQuery dependency, and no module imports one. `test/setup.ts` assigns `assert` onto `globalThis` with `Object.assign`.
 - **Tests** run against `src/`, not `dist/`. `vitest.config.ts` collects only `test/**/*.test.ts`. `test/integration/common.ts` registers a `beforeEach` fixture; a test file that uses no helpers must still `import './common.js'` for that side effect.
 - **Versioning:** `.githooks/pre-commit` (enabled via `git config core.hooksPath .githooks`) runs `npm version patch --no-git-tag-version` on every commit and stages `package.json` + `package-lock.json` into that same commit. Bypass one bump with `SKIP_VERSION_BUMP=1 git commit ...`.

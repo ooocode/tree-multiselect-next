@@ -14,14 +14,17 @@ div.tree-multiselect {
   --tm-text-muted: #64748b;
   --tm-hover: #f1f5f9;
   --tm-danger: #dc2626;
-  --tm-shadow: 0 10px 24px -8px rgb(15 23 42 / 28%);
+  --tm-danger-soft: rgba(220, 38, 38, 0.12);
+  --tm-border-strong: #94a3b8;
+  --tm-focus-ring: rgba(37, 99, 235, 0.2);
+  --tm-shadow: 0 10px 24px -8px rgba(15, 23, 42, 0.28);
   --tm-radius: 12px;
   --tm-radius-sm: 6px;
 
   background: var(--tm-bg);
   border: 1px solid var(--tm-border);
   border-radius: var(--tm-radius);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 4%), 0 8px 24px -16px rgb(15 23 42 / 18%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -16px rgba(15, 23, 42, 0.18);
   color: var(--tm-text);
   color-scheme: light dark;
   display: flex;
@@ -41,8 +44,11 @@ div.tree-multiselect {
     --tm-text-muted: #94a3b8;
     --tm-hover: #1e293b;
     --tm-danger: #f87171;
-    --tm-shadow: 0 10px 24px -8px rgb(0 0 0 / 55%);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+    --tm-danger-soft: rgba(248, 113, 113, 0.16);
+    --tm-border-strong: #475569;
+    --tm-focus-ring: rgba(96, 165, 250, 0.28);
+    --tm-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   }
 
   *,
@@ -83,7 +89,6 @@ div.tree-multiselect {
     border-radius: var(--tm-radius-sm);
     color: inherit;
     display: flex;
-    gap: 6px;
     min-height: 32px;
     padding: 4px 8px;
     position: relative;
@@ -137,7 +142,6 @@ div.tree-multiselect {
     color: var(--tm-text-muted);
     display: flex;
     font-weight: 600;
-    gap: 6px;
     min-height: 32px;
     padding: 4px 8px;
     transition: background-color 120ms ease, color 120ms ease;
@@ -156,6 +160,7 @@ div.tree-multiselect {
     > span.collapse-section {
       flex: none;
       height: 16px;
+      margin-right: 6px;
       position: relative;
       width: 16px;
 
@@ -178,12 +183,16 @@ div.tree-multiselect {
     accent-color: var(--tm-accent);
     flex: none;
     height: 16px;
-    margin: 0;
+    margin: 0 6px 0 0;
     width: 16px;
 
-    &:focus-visible {
+    &:focus {
       outline: 2px solid var(--tm-accent);
       outline-offset: 2px;
+    }
+
+    &:focus:not(:focus-visible) {
+      outline: none;
     }
 
     &:not([disabled]):hover {
@@ -210,7 +219,7 @@ div.tree-multiselect {
     }
 
     &:hover {
-      border-color: color-mix(in srgb, var(--tm-border) 55%, var(--tm-text-muted));
+      border-color: var(--tm-border-strong);
     }
   }
 
@@ -230,7 +239,7 @@ div.tree-multiselect {
     width: 20px;
 
     &:hover {
-      background: color-mix(in srgb, var(--tm-danger) 14%, transparent);
+      background: var(--tm-danger-soft);
       color: var(--tm-danger);
     }
   }
@@ -248,6 +257,7 @@ div.tree-multiselect {
     height: 16px;
     justify-content: center;
     line-height: 1;
+    margin-right: 6px;
     width: 16px;
   }
 
@@ -278,8 +288,11 @@ div.tree-multiselect {
   .auxiliary {
     align-items: center;
     display: flex;
-    gap: 8px;
     margin-bottom: 10px;
+
+    input.search + .select-all-container {
+      margin-left: 8px;
+    }
 
     input.search {
       background: var(--tm-bg);
@@ -296,10 +309,15 @@ div.tree-multiselect {
         color: var(--tm-text-muted);
       }
 
-      &:focus-visible {
+      &:focus {
         border-color: var(--tm-accent);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-accent) 20%, transparent);
+        box-shadow: 0 0 0 3px var(--tm-focus-ring);
         outline: none;
+      }
+
+      &:focus:not(:focus-visible) {
+        border-color: var(--tm-border);
+        box-shadow: none;
       }
     }
 
@@ -307,7 +325,10 @@ div.tree-multiselect {
       align-items: center;
       display: flex;
       flex: none;
-      gap: 12px;
+
+      > span + span {
+        margin-left: 12px;
+      }
 
       span.select-all,
       span.unselect-all {
@@ -342,6 +363,7 @@ div.tree-multiselect {
   }
 
   > div.selected.sortable-dragging {
+    -webkit-user-select: none;
     user-select: none;
   }
 

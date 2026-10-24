@@ -1,12 +1,15 @@
-export * as array from './array.js';
+import * as array from './array.js';
+import * as dom from './dom.js';
+
+// `export * as array from ...` is ES2020 syntax; explicit imports keep the
+// published ESM parseable by Chrome 61 / Firefox 60 / Safari 11.1.
+export { array, dom };
 
 export function assert (bool: unknown, message?: string): void {
   if (!bool) {
     throw new Error(message || 'Assertion failed');
   }
 }
-
-export * as dom from './dom.js';
 
 export function getKey (el: Element): number {
   assert(el);

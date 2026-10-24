@@ -67,6 +67,16 @@ describe('TreeMultiselect entry', () => {
     assert.equal(sandbox.querySelectorAll('.tree-multiselect').length, 2);
   });
 
+  it('accepts an array-like collection of selects', () => {
+    let select = createSelect(sandbox, '<option value=\'one\' data-section=\'test\'>One</option>');
+    let collection = { length: 1, 0: select } as unknown as HTMLSelectElement[];
+
+    let handles = treeMultiselect(collection);
+
+    assert.equal(handles.length, 1);
+    assert.equal(sandbox.querySelectorAll('.tree-multiselect').length, 1);
+  });
+
   it('rejects targets that are not select elements', () => {
     let div = document.createElement('div');
     sandbox.appendChild(div);

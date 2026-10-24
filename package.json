@@ -1,6 +1,6 @@
 {
   "name": "tree-multiselect-next",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Multiple select with nested options",
   "type": "module",
   "main": "./dist/tree-multiselect.js",
@@ -24,16 +24,18 @@
     "checkbox"
   ],
   "scripts": {
-    "build": "npm run build:js && npm run build:css",
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && npm run build:js && npm run build:css",
     "release": "npm run build",
-    "build:js": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
+    "build:js": "tsc -p tsconfig.build.json",
     "build:css": "sass src/style.scss dist/tree-multiselect.css && sass --style=compressed src/style.scss dist/tree-multiselect.min.css",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "typecheck:file": "tsc --noEmit --ignoreConfig --strict --target ES2020 --lib ES2020,DOM --module NodeNext --moduleResolution NodeNext --esModuleInterop --skipLibCheck",
+    "typecheck:file": "tsc --noEmit --ignoreConfig --strict --target ES2017 --lib ES2017,DOM,DOM.Iterable --module NodeNext --moduleResolution NodeNext --esModuleInterop --skipLibCheck",
     "lint": "eslint .",
-    "test": "npm run typecheck && npm run lint && npm run build:js && npm run typecheck:consumer && npm run test:ssr && vitest run",
+    "test": "npm run typecheck && npm run lint && npm run build:js && npm run check:legacy && npm run typecheck:consumer && npm run test:ssr && vitest run",
     "test:ssr": "node scripts/check-ssr.mjs",
     "typecheck:consumer": "tsc -p test/consumer/tsconfig.json",
+    "check:legacy": "node scripts/check-legacy.mjs",
     "test:watch": "vitest",
     "dev": "vite demo",
     "prepublishOnly": "npm run build"
@@ -48,6 +50,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/chai": "^5.2.3",
     "@vitest/browser-playwright": "^5.0.5",
+    "acorn": "^8.19.0",
     "chai": "^5.3.3",
     "eslint": "^10.13.0",
     "playwright": "^1.64.1",
