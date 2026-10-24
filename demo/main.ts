@@ -6,7 +6,10 @@ jQuery('#test-select').treeMultiselect({
   enableSelectAll: true,
   sortable: true,
   selectAllText: '全选',
-  unselectAllText: '全不选'
+  unselectAllText: '全不选',
+  onChange(allSelectedItems, addedItems, removedItems) {
+    console.log(allSelectedItems)
+  },
 });
 
 jQuery('#test-select-2').treeMultiselect({

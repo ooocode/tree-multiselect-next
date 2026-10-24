@@ -1,6 +1,6 @@
 {
   "name": "tree-multiselect-next",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "jQuery multiple select with nested options",
   "type": "module",
   "main": "./dist/tree-multiselect.js",
